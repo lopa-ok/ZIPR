@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://bgkdbmalwj45u"
+path="res://.godot/imported/wall-round-low.obj-bd665cd09ece98b119b40f636924775a.mesh"
+
+[deps]
+
+files=["res://.godot/imported/wall-round-low.obj-bd665cd09ece98b119b40f636924775a.mesh"]
+
+source_file="res://resources/models/Cool/Models/OBJ format/wall-round-low.obj"
+dest_files=["res://.godot/imported/wall-round-low.obj-bd665cd09ece98b119b40f636924775a.mesh", "res://.godot/imported/wall-round-low.obj-bd665cd09ece98b119b40f636924775a.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://c3bu4x6mhrg6t"
+path="res://.godot/imported/column-rounded-low.obj-060d5e3548721c9bc177b00c7f4b660c.mesh"
+
+[deps]
+
+files=["res://.godot/imported/column-rounded-low.obj-060d5e3548721c9bc177b00c7f4b660c.mesh"]
+
+source_file="res://resources/models/Cool/Models/OBJ format/column-rounded-low.obj"
+dest_files=["res://.godot/imported/column-rounded-low.obj-060d5e3548721c9bc177b00c7f4b660c.mesh", "res://.godot/imported/column-rounded-low.obj-060d5e3548721c9bc177b00c7f4b660c.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false
