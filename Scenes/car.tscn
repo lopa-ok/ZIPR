@@ -1,17 +1,12 @@
-[gd_scene load_steps=16 format=4 uid="uid://bvpq0btiaxxi1"]
+[gd_scene load_steps=15 format=4 uid="uid://7iwmpu24p8jt"]
 
-[ext_resource type="Script" uid="uid://dkik048kk7oqu" path="res://Scripts/car.gd" id="1_go66d"]
-[ext_resource type="Texture2D" uid="uid://cjcvseqbkkff6" path="res://resources/models/Models/GLB format/Textures/colormap.png" id="2_1sfmx"]
-
-[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_uoj53"]
-bounce = 0.1
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_k61xc"]
+[ext_resource type="Texture2D" uid="uid://cjcvseqbkkff6" path="res://resources/models/Models/GLB format/Textures/colormap.png" id="1_5orbf"]
+[ext_resource type="Script" uid="uid://bhoyfsmf8qo8c" path="res://Scripts/car.gd" id="1_abc123"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a8r5x"]
 resource_name = "colormap"
 cull_mode = 2
-albedo_texture = ExtResource("2_1sfmx")
+albedo_texture = ExtResource("1_5orbf")
 texture_filter = 2
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_p3egi"]
@@ -47,6 +42,9 @@ _surfaces = [{
 }]
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_p3egi")
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_8tfcp"]
+points = PackedVector3Array(0.6, 0.099934064, 0.16537285, 0.6, 0, 0.16537285, 0.6, 0.099934064, -0.4347304, 0.54996085, 0.38852927, 0.16537285, 0.4498825, 0.14996302, 1.2798862, 0.6, 0, -0.4347304, 0.4498825, 0, 1.2798862, 0.3499217, 0.5360156, -1.2798862, 0.54996085, 0.38852927, 0.06539738, 0.06695378, 0.6325442, -0.10323286, -0.45011747, 0.14996302, 1.2798862, 0.3499217, 0, -1.2300239, 0.3499217, 0.049967032, -1.2798862, -0.45011747, 0, 1.2798862, -0.35003918, 0.5360156, -1.2798862, 0.06695378, 0.6325442, -0.20320833, -0.06707126, 0.6325442, -0.10323286, -0.55007833, 0.38852927, 0.16537285, -0.6, 0.099934064, 0.16537285, -0.35003918, 0, -1.2300239, -0.35003918, 0.049967032, -1.2798862, -0.6, 0, 0.16537285, -0.06707126, 0.6325442, -0.20320833, -0.6, 0.099934064, -0.4347304, -0.55007833, 0.38852927, 0.06539738, -0.6, 0, -0.4347304)
 
 [sub_resource type="ArrayMesh" id="ArrayMesh_280hx"]
 _surfaces = [{
@@ -184,49 +182,76 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_dqhqx")
 
-[node name="Car" type="Node3D"]
-script = ExtResource("1_go66d")
+[node name="race" type="VehicleBody3D"]
+script = ExtResource("1_abc123")
 
-[node name="Ball" type="RigidBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
-physics_material_override = SubResource("PhysicsMaterial_uoj53")
-gravity_scale = 10.0
-linear_damp = 2.0
-angular_damp = 5.0
+[node name="Model" type="Node3D" parent="."]
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Ball"]
-shape = SubResource("SphereShape3D_k61xc")
-
-[node name="Car" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
-
-[node name="Model" type="Node3D" parent="Car"]
-
-[node name="body" type="MeshInstance3D" parent="Car/Model"]
+[node name="body" type="MeshInstance3D" parent="Model"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3499743e-13, 0.1, -3.609557e-16)
 mesh = SubResource("ArrayMesh_jtta6")
 skeleton = NodePath("")
 
-[node name="wheel-back-left" type="MeshInstance3D" parent="Car/Model"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.3499743e-13, 0.1, -3.609557e-16)
+shape = SubResource("ConvexPolygonShape3D_8tfcp")
+
+[node name="WheelRearLeft" type="VehicleWheel3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.3, -0.8801137)
+use_as_traction = true
+wheel_radius = 0.3
+wheel_rest_length = 0.15
+wheel_friction_slip = 3.5
+suspension_travel = 0.25
+suspension_stiffness = 80.0
+suspension_damping = 12.0
+
+[node name="wheel-back-left" type="MeshInstance3D" parent="WheelRearLeft"]
 mesh = SubResource("ArrayMesh_6tiwi")
 skeleton = NodePath("")
 
-[node name="wheel-back-right" type="MeshInstance3D" parent="Car/Model"]
+[node name="WheelRearRight" type="VehicleWheel3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0.3, -0.8801137)
+use_as_traction = true
+wheel_radius = 0.3
+wheel_rest_length = 0.15
+wheel_friction_slip = 3.5
+suspension_travel = 0.25
+suspension_stiffness = 80.0
+suspension_damping = 12.0
+
+[node name="wheel-back-right" type="MeshInstance3D" parent="WheelRearRight"]
 mesh = SubResource("ArrayMesh_3wjqf")
 skeleton = NodePath("")
 
-[node name="wheel-front-left" type="MeshInstance3D" parent="Car/Model"]
+[node name="WheelFrontLeft" type="VehicleWheel3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.3, 0.6398862)
+use_as_steering = true
+wheel_radius = 0.3
+wheel_rest_length = 0.15
+wheel_friction_slip = 3.0
+suspension_travel = 0.25
+suspension_stiffness = 70.0
+suspension_damping = 12.0
+
+[node name="wheel-front-left" type="MeshInstance3D" parent="WheelFrontLeft"]
 mesh = SubResource("ArrayMesh_1f3ke")
 skeleton = NodePath("")
 
-[node name="wheel-front-right" type="MeshInstance3D" parent="Car/Model"]
+[node name="WheelFrontRight" type="VehicleWheel3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0.3, 0.6398862)
+use_as_steering = true
+wheel_radius = 0.3
+wheel_rest_length = 0.15
+wheel_friction_slip = 3.0
+suspension_travel = 0.25
+suspension_stiffness = 70.0
+suspension_damping = 12.0
+
+[node name="wheel-front-right" type="MeshInstance3D" parent="WheelFrontRight"]
 mesh = SubResource("ArrayMesh_nq6jw")
 skeleton = NodePath("")
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(-1, 0, -8.7422784e-08, -1.5996042e-08, 0.9831179, 0.1829734, 8.5946894e-08, 0.1829734, -0.9831179, 0, 1.9176388, -3.4934213)
-fov = 80.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -5)
+current = true
