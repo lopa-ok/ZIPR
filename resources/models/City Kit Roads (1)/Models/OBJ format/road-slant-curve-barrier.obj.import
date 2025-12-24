@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://dv3lb5hstij2d"
+path="res://.godot/imported/road-slant-curve-barrier.obj-9cd4cae480ea2a17256bfa244534351e.mesh"
+
+[deps]
+
+files=["res://.godot/imported/road-slant-curve-barrier.obj-9cd4cae480ea2a17256bfa244534351e.mesh"]
+
+source_file="res://resources/models/City Kit Roads (1)/Models/OBJ format/road-slant-curve-barrier.obj"
+dest_files=["res://.godot/imported/road-slant-curve-barrier.obj-9cd4cae480ea2a17256bfa244534351e.mesh", "res://.godot/imported/road-slant-curve-barrier.obj-9cd4cae480ea2a17256bfa244534351e.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

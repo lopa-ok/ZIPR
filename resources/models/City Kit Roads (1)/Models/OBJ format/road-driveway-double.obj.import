@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://c6jw2ig8r6gl3"
+path="res://.godot/imported/road-driveway-double.obj-f1e98a3ad0191f089abfb2c6d48ecb13.mesh"
+
+[deps]
+
+files=["res://.godot/imported/road-driveway-double.obj-f1e98a3ad0191f089abfb2c6d48ecb13.mesh"]
+
+source_file="res://resources/models/City Kit Roads (1)/Models/OBJ format/road-driveway-double.obj"
+dest_files=["res://.godot/imported/road-driveway-double.obj-f1e98a3ad0191f089abfb2c6d48ecb13.mesh", "res://.godot/imported/road-driveway-double.obj-f1e98a3ad0191f089abfb2c6d48ecb13.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

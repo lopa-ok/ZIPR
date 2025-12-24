@@ -251,3 +251,7 @@ current = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 script = ExtResource("3_jbim0")
+
+[node name="RayCast3D" type="RayCast3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6221322, -0.06445694)
+target_position = Vector3(0, 1, 0)

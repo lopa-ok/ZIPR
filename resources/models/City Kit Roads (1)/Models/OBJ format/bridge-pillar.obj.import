@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://lavdhm66vk1j"
+path="res://.godot/imported/bridge-pillar.obj-5f4a722718344a859970a3bc0774705c.mesh"
+
+[deps]
+
+files=["res://.godot/imported/bridge-pillar.obj-5f4a722718344a859970a3bc0774705c.mesh"]
+
+source_file="res://resources/models/City Kit Roads (1)/Models/OBJ format/bridge-pillar.obj"
+dest_files=["res://.godot/imported/bridge-pillar.obj-5f4a722718344a859970a3bc0774705c.mesh", "res://.godot/imported/bridge-pillar.obj-5f4a722718344a859970a3bc0774705c.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false
