@@ -1,8 +1,10 @@
-[gd_scene load_steps=16 format=4 uid="uid://7iwmpu24p8jt"]
+[gd_scene load_steps=17 format=4 uid="uid://7iwmpu24p8jt"]
 
 [ext_resource type="Texture2D" uid="uid://cjcvseqbkkff6" path="res://resources/models/Models/GLB format/Textures/colormap.png" id="1_5orbf"]
 [ext_resource type="Script" uid="uid://bhoyfsmf8qo8c" path="res://Scripts/car.gd" id="1_abc123"]
 [ext_resource type="Script" uid="uid://csd306qvnpncq" path="res://Scripts/ui.gd" id="3_jbim0"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_jbim0"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_a8r5x"]
 resource_name = "colormap"
@@ -184,6 +186,9 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_dqhqx")
 
 [node name="race" type="VehicleBody3D"]
+physics_material_override = SubResource("PhysicsMaterial_jbim0")
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, -0.24, 0)
 script = ExtResource("1_abc123")
 
 [node name="Model" type="Node3D" parent="."]
