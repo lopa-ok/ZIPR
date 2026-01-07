@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://cs386yanwmowr"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_6tac1"]
+
+[node name="WaterBalloon" type="RigidBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_6tac1")
+
+[node name="CSGSphere3D" type="CSGSphere3D" parent="."]

@@ -11,27 +11,53 @@ func _process(_delta):
 	if speedometer_label and car:
 		var speed = car.get_speed()
 		var speed_kmh = speed * 3.6
-		speedometer_label.text = "%d KM/H" % int(speed_kmh)
+		speedometer_label.text = "%03d" % int(speed_kmh)
+		var powerup_label = speedometer_label.get_parent().get_node("PowerupLabel")
+		if car.has_powerup:
+			powerup_label.text = car.current_powerup.capitalize()
+		else:
+			powerup_label.text = ""
 
 func create_speedometer():
-	var panel = PanelContainer.new()
-	add_child(panel)
-	panel.position = Vector2(20, 20)
-	
-	var margin = MarginContainer.new()
-	panel.add_child(margin)
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	
+	var vbox = VBoxContainer.new()
+	add_child(vbox)
+	vbox.anchor_left = 1.0
+	vbox.anchor_top = 1.0
+	vbox.anchor_right = 1.0
+	vbox.anchor_bottom = 1.0
+	vbox.offset_left = -200
+	vbox.offset_top = -120
+	vbox.offset_right = -20
+	vbox.offset_bottom = -20
+	vbox.size_flags_horizontal = Control.SIZE_SHRINK_END
+	vbox.size_flags_vertical = Control.SIZE_SHRINK_END
+	vbox.custom_minimum_size = Vector2(180, 90)
+	vbox.grow_horizontal = Control.GROW_DIRECTION_END
+	vbox.grow_vertical = Control.GROW_DIRECTION_END
+
 	speedometer_label = Label.new()
-	margin.add_child(speedometer_label)
-	speedometer_label.text = "0 KM/H"
-	
+	vbox.add_child(speedometer_label)
+	speedometer_label.text = "000"
+	speedometer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	speedometer_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	speedometer_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	speedometer_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
 	var label_settings = LabelSettings.new()
-	label_settings.font_size = 32
-	label_settings.font_color = Color.WHITE
-	label_settings.outline_size = 4
-	label_settings.outline_color = Color.BLACK
+	label_settings.font_size = 48
+	label_settings.font_color = Color(1, 1, 1)
+	label_settings.font = load("res://pixel_font.tres")
 	speedometer_label.label_settings = label_settings
+
+	var powerup_label = Label.new()
+	vbox.add_child(powerup_label)
+	powerup_label.name = "PowerupLabel"
+	powerup_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	powerup_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	powerup_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	powerup_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var powerup_settings = LabelSettings.new()
+	powerup_settings.font_size = 24
+	powerup_settings.font_color = Color(1, 1, 1)
+	powerup_settings.font = load("res://pixel_font.tres")
+	powerup_label.label_settings = powerup_settings

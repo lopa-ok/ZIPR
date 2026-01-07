@@ -39,11 +39,6 @@ checkpoint_index = 3
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_1omlh")
-camera_effects_enabled = true
-camera_effects_motion_blur_enabled = true
-camera_effects_motion_blur_amount = 1.0
-camera_effects_motion_blur_max = 1.0
-camera_effects_motion_blur_min = 1.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)

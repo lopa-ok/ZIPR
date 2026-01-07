@@ -206,8 +206,8 @@ shape = SubResource("ConvexPolygonShape3D_8tfcp")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.3, -0.8801137)
 use_as_traction = true
 wheel_radius = 0.3
-wheel_friction_slip = 3.5
-suspension_travel = 0.25
+wheel_friction_slip = 1.5
+suspension_travel = 0.5
 suspension_stiffness = 80.0
 
 [node name="wheel-back-left" type="MeshInstance3D" parent="WheelRearLeft"]
@@ -218,8 +218,8 @@ skeleton = NodePath("")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0.3, -0.8801137)
 use_as_traction = true
 wheel_radius = 0.3
-wheel_friction_slip = 3.5
-suspension_travel = 0.25
+wheel_friction_slip = 1.5
+suspension_travel = 0.5
 suspension_stiffness = 80.0
 
 [node name="wheel-back-right" type="MeshInstance3D" parent="WheelRearRight"]
@@ -228,10 +228,11 @@ skeleton = NodePath("")
 
 [node name="WheelFrontLeft" type="VehicleWheel3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.3, 0.6398862)
+use_as_traction = true
 use_as_steering = true
 wheel_radius = 0.3
-wheel_friction_slip = 3.0
-suspension_travel = 0.25
+wheel_friction_slip = 1.5
+suspension_travel = 0.5
 suspension_stiffness = 70.0
 
 [node name="wheel-front-left" type="MeshInstance3D" parent="WheelFrontLeft"]
@@ -240,10 +241,11 @@ skeleton = NodePath("")
 
 [node name="WheelFrontRight" type="VehicleWheel3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0.3, 0.6398862)
+use_as_traction = true
 use_as_steering = true
 wheel_radius = 0.3
-wheel_friction_slip = 3.0
-suspension_travel = 0.25
+wheel_friction_slip = 1.5
+suspension_travel = 0.5
 suspension_stiffness = 70.0
 
 [node name="wheel-front-right" type="MeshInstance3D" parent="WheelFrontRight"]

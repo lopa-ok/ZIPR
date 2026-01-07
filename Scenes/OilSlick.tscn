@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://terxaymd6llp"]
+
+[ext_resource type="Script" uid="uid://cghrtsoucopyp" path="res://Scripts/oil_slick.gd" id="1_jobef"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_rgc2t"]
+size = Vector3(4.5808105, 1, 6.0342407)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jobef"]
+albedo_color = Color(0.16026929, 0.16026929, 0.16026929, 1)
+
+[node name="OilSlick" type="Area3D"]
+script = ExtResource("1_jobef")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5662842, 0, -1.2367249)
+shape = SubResource("BoxShape3D_rgc2t")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3696468, 0, 0)
+size = Vector3(3.5117798, 1, 1)
+material = SubResource("StandardMaterial3D_jobef")
