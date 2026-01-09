@@ -83,3 +83,8 @@ func get_last_checkpoint_for_car(car: Node) -> Node:
 	else:
 		print("[RACE] get_last_checkpoint_for_car: returning checkpoint index=", cp.checkpoint_index, " for ", car.name)
 	return cp
+
+func get_next_checkpoint_index_for_car(car: Node) -> int:
+	if not car_progress.has(car):
+		return 0
+	return int(car_progress[car]["next_index"])

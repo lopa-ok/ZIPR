@@ -5,16 +5,24 @@ var speedometer_label: Label
 
 func _ready():
 	car = get_parent()
+	if car.has_method("has_ai_control") and car.call("has_ai_control"):
+		visible = false
+	else:
+		visible = true
 	create_speedometer()
 
 func _process(_delta):
 	if speedometer_label and car:
-		var speed = car.get_speed()
+		var speed: float = 0.0
+		if car.has_method("get_speed"):
+			speed = float(car.call("get_speed"))
+		else:
+			speed = float(car.linear_velocity.length())
 		var speed_kmh = speed * 3.6
 		speedometer_label.text = "%03d" % int(speed_kmh)
 		var powerup_label = speedometer_label.get_parent().get_node("PowerupLabel")
-		if car.has_powerup:
-			powerup_label.text = car.current_powerup.capitalize()
+		if ("has_powerup" in car) and car.has_powerup:
+			powerup_label.text = String(car.current_powerup).capitalize()
 		else:
 			powerup_label.text = ""
 

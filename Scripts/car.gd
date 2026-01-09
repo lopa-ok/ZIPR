@@ -52,6 +52,12 @@ var drift_kick_strength := 8.0
 var drift_kick_cooldown := 0.2
 var drift_kick_timer := 0.0
 
+var is_ai_controlled: bool = false
+var ai_accel: bool = false
+var ai_brake: bool = false
+var ai_steer: float = 0.0
+var ai_handbrake: bool = false
+
 @onready var body_mesh = $Model/body
 @onready var wheel_fl = $WheelFrontLeft
 @onready var wheel_fr = $WheelFrontRight
@@ -66,11 +72,17 @@ func _ready() -> void:
 	if race_manager and race_manager.has_method("register_car"):
 		race_manager.register_car(self)
 
+func set_ai_inputs(accel: bool, brake: bool, steer: float, handbrake: bool) -> void:
+	ai_accel = accel
+	ai_brake = brake
+	ai_steer = clamp(steer, -1.0, 1.0)
+	ai_handbrake = handbrake
+
 func _physics_process(delta: float) -> void:
-	var accel_input := Input.is_action_pressed("Accelerate")
-	var brake_input := Input.is_action_pressed("Brake")
-	var steer_input := Input.get_axis("SteerRight", "SteerLeft")
-	var handbrake_input := Input.is_action_pressed("Handbrake")
+	var accel_input := ai_accel if is_ai_controlled else Input.is_action_pressed("Accelerate")
+	var brake_input := ai_brake if is_ai_controlled else Input.is_action_pressed("Brake")
+	var steer_input := ai_steer if is_ai_controlled else Input.get_axis("SteerRight", "SteerLeft")
+	var handbrake_input := ai_handbrake if is_ai_controlled else Input.is_action_pressed("Handbrake")
 
 	var engine := 0.0
 	var brake_force := 0.0
@@ -111,6 +123,7 @@ func _physics_process(delta: float) -> void:
 		steer_val *= clamp(1.0 - abs(speed) / max_speed, speed_steering_factor, 1.0)
 	if handbrake_input:
 		steer_val *= 1.5
+	steer_val = clamp(steer_val, -max_steering * 1.5, max_steering * 1.5)
 	wheel_fl.steering = steer_val
 	wheel_fr.steering = steer_val
 
