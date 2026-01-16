@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://7iwmpu24p8jt" path="res://Scenes/Car.tscn" id="1_2kvr6"]
 [ext_resource type="Script" uid="uid://lu7t7xxgb2h4" path="res://Scripts/race_manager.gd" id="1_ktrjm"]
 [ext_resource type="PackedScene" uid="uid://b8icky1xnaagk" path="res://Scenes/checkpoint.tscn" id="3_jqucc"]
+[ext_resource type="PackedScene" uid="uid://c8q1n1n1n1n1" path="res://Scenes/SpawnPoint.tscn" id="2_spawn_point"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ktrjm"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -56,3 +57,12 @@ size = Vector3(200, 1, 100)
 
 [node name="race" parent="." instance=ExtResource("1_2kvr6")]
 transform = Transform3D(0.123601474, 0, 0.9923319, 0, 1, 0, -0.9923319, 0, 0.123601474, -4.5834637, 0.8, 0)
+visible = false
+
+[node name="SpawnPoint_Player" parent="." instance=ExtResource("2_spawn_point")]
+transform = Transform3D(0.123601, 0, 0.992332, 0, 1, 0, -0.992332, 0, 0.123601, -4.58346, 0.8, 0)
+is_player_start = true
+
+[node name="SpawnPoint_AI1" parent="." instance=ExtResource("2_spawn_point")]
+transform = Transform3D(0.123601, 0, 0.992332, 0, 1, 0, -0.992332, 0, 0.123601, -4.58346, 0.8, 5.0)
+spawn_index = 1

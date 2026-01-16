@@ -5,12 +5,38 @@ extends Node
 var checkpoints: Array[Node] = []
 var car_progress := {}
 var race_started := false
+var spawn_points: Array[Node] = []
 
 var race_time: float = 0.0
+var countdown_timer: float = 0.0
+var countdown_active: bool = false
+var go_display_timer: float = 0.0
 
 func _process(delta: float) -> void:
+	if countdown_active:
+		var last_int = ceil(countdown_timer)
+		countdown_timer -= delta
+		var current_int = ceil(countdown_timer)
+		
+		if current_int < last_int and current_int > 0:
+			_play_countdown_beep()
+			
+		if countdown_timer <= 0.0:
+			countdown_active = false
+			race_started = true
+			race_time = 0.0
+			go_display_timer = 2.0
+			print("[RACE] GO!")
+			if SoundManager:
+				SoundManager.play_sfx("res://resources/models/Music/beep.mp3", 0.0, 1.5)
+		else:
+			pass 
+		return
+
 	if race_started:
 		race_time += delta
+		if go_display_timer > 0.0:
+			go_display_timer -= delta
 
 func _ready():
 	if not is_in_group("race_manager"):
@@ -27,14 +53,42 @@ func _ready():
 	for cp in checkpoints:
 		print("[RACE] checkpoint index=", cp.checkpoint_index)
 	
-	race_started = true
-	race_time = 0.0
-	print("[RACE] Race started")
+	spawn_points = []
+	for node in get_tree().get_nodes_in_group("spawn_point"):
+		spawn_points.append(node)
+	spawn_points.sort_custom(func(a, b): return a.spawn_index < b.spawn_index)
+	print("[RACE] Found spawn points: ", spawn_points.size())
+
+	call_deferred("_spawn_cars")
+	
+	Global.reset_ai_assignments()
+	
+	if SoundManager:
+		SoundManager.play_music("res://resources/models/Music/MainTrack.mp3", -10.0)
+
+	_start_countdown()
+
+func _start_countdown():
+	countdown_timer = 3.0
+	countdown_active = true
+	race_started = false
+	print("[RACE] Countdown started")
+	_play_countdown_beep()
+
+func get_countdown_text() -> String:
+	if countdown_active:
+		return str(ceil(countdown_timer))
+	if race_started and go_display_timer > 0.0:
+		return "GO!"
+	return ""
 
 func _sort_checkpoints(a, b):
 	return a.checkpoint_index < b.checkpoint_index
 
 func register_car(car: Node):
+	if car_progress.has(car):
+		return
+		
 	print("[RACE] register_car called for ", car.name)
 	car_progress[car] = {
 		"next_index": 0,
@@ -164,6 +218,21 @@ func get_gap_to_ahead_meters(car: Node) -> float:
 	var ahead: Node = cars[pos - 1]
 	return _approx_gap_meters(car, ahead)
 
+func get_race_progress_distance(car: Node) -> float:
+	if not car_progress.has(car):
+		return 0.0
+	var state = car_progress[car]
+	var lap = int(state.get("lap", 0))
+	var next_idx = int(state.get("next_index", 0))
+	
+	var dist_score: float = (float(lap) * 100000.0) + (float(next_idx) * 1000.0)
+	
+	var dist_to_next: float = _distance_to_next_checkpoint(car)
+	if dist_to_next == INF:
+		return dist_score
+	
+	return dist_score - dist_to_next
+
 func _distance_to_next_checkpoint(car: Node) -> float:
 	if checkpoints.is_empty() or not car_progress.has(car):
 		return INF
@@ -188,3 +257,62 @@ func _approx_gap_meters(behind: Node, ahead: Node) -> float:
 	var db: float = _distance_to_next_checkpoint(behind)
 	var da: float = _distance_to_next_checkpoint(ahead)
 	return max(0.0, db - da)
+
+func _spawn_cars() -> void:
+	if spawn_points.is_empty():
+		print("[RACE] No spawn points found! Cars must be placed manually.")
+		return
+
+	var player_spawn = null
+	for sp in spawn_points:
+		if sp.is_player_start:
+			player_spawn = sp
+			break
+	if player_spawn == null and not spawn_points.is_empty():
+		player_spawn = spawn_points[0]
+	
+	if player_spawn:
+		_spawn_single_car(player_spawn, false)
+
+	var ai_count = 0
+	var existing_ids = []
+	if player_spawn:
+		existing_ids.append(Global.selected_car_id)
+		
+	if existing_ids.is_empty():
+		pass
+
+	for sp in spawn_points:
+		if sp == player_spawn:
+			continue
+		_spawn_single_car(sp, true)
+		ai_count += 1
+		if ai_count >= 5: 
+			break
+
+func _spawn_single_car(spawn_point: Node, is_ai: bool) -> void:
+	var car_scene = load("res://Scenes/Car.tscn")
+	var car = car_scene.instantiate()
+	
+	car.global_transform = spawn_point.global_transform
+	
+	if is_ai:
+		car.is_ai_controlled = true
+		car.car_name = "AI Car " + str(spawn_point.spawn_index)
+		car.name = "AI_Car_" + str(spawn_point.spawn_index)
+	else:
+		car.is_ai_controlled = false
+	
+	get_tree().current_scene.add_child(car)
+	print("[RACE] Spawned ", car.name, " at point ", spawn_point.name)
+	
+	if is_ai:
+		var ai_manager = get_tree().get_first_node_in_group("ai_manager")
+		if ai_manager and ai_manager.has_method("register_ai_car"):
+			ai_manager.register_ai_car(car)
+		else:
+			print("[RACE] WARNING: No AI Manager found to control ", car.name)
+
+func _play_countdown_beep():
+	if SoundManager:
+		SoundManager.play_sfx("res://resources/models/Music/beep.mp3", -5.0, 1.0)

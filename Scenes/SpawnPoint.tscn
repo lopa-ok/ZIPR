@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8q1n1n1n1n1"]
+
+[ext_resource type="Script" path="res://Scripts/spawn_point.gd" id="1_script"]
+
+[node name="SpawnPoint" type="Node3D" groups=["spawn_point"]]
+script = ExtResource("1_script")
+
+[node name="Marker3D" type="Marker3D" parent="."]
+gizmo_extents = 1.0
