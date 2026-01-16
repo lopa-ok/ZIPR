@@ -30,6 +30,7 @@ var lap_time_label: Label
 var best_lap_label: Label
 var position_label: Label
 var gap_label: Label
+var countdown_label: Label
 
 func _ready():
 	car = _resolve_car()
@@ -121,6 +122,18 @@ func _process(_delta):
 			if powerup_icon:
 				powerup_icon.texture = null
 				powerup_icon.visible = false
+
+	if countdown_label and race_manager.has_method("get_countdown_text"):
+		var txt: String = race_manager.call("get_countdown_text")
+		countdown_label.text = txt
+		countdown_label.visible = txt != ""
+		if txt != "":
+			var t = race_manager.countdown_timer if "countdown_timer" in race_manager else 0.0
+			var frac = t - floor(t)
+			var s = 1.0 + frac * 0.5
+			if txt == "GO!": s = 1.0
+			countdown_label.scale = Vector2(s, s)
+			countdown_label.pivot_offset = countdown_label.size / 2
 
 	_update_race_hud()
 
@@ -295,6 +308,23 @@ func create_hud():
 	gap_label.label_settings = _make_pixel_label(20, Color(1, 1, 1, 0.9))
 	gap_label.text = "GAP    --"
 
+	countdown_label = Label.new()
+	add_child(countdown_label)
+	countdown_label.anchor_left = 0.5
+	countdown_label.anchor_right = 0.5
+	countdown_label.anchor_top = 0.5
+	countdown_label.anchor_bottom = 0.5
+	countdown_label.offset_left = -200
+	countdown_label.offset_top = -100
+	countdown_label.offset_right = 200
+	countdown_label.offset_bottom = 100
+	countdown_label.text = ""
+	countdown_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	countdown_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	countdown_label.label_settings = _make_pixel_label(96, Color(1, 1, 0))
+	countdown_label.label_settings.outline_size = 12
+	countdown_label.label_settings.outline_color = Color(0,0,0)
+
 class _SpeedGauge:
 	extends Control
 
@@ -357,7 +387,7 @@ class _SpeedGauge:
 			var a: float = lerpf(a0, a1, tt)
 			var is_major: bool = (i % minors_per_major) == 0
 
-			var len: float = 16.0 if is_major else 9.0
+			var line_len: float = 16.0 if is_major else 9.0
 			var w: float = 3.0 if is_major else 2.0
 			var col: Color = major_col if is_major else minor_col
 			if tt <= t:
@@ -367,5 +397,5 @@ class _SpeedGauge:
 			var n: Vector2 = Vector2((p_edge.x - center.x) / (rx * rx), (p_edge.y - center.y) / (ry * ry)).normalized()
 
 			var p1: Vector2 = p_edge - n * 6.0
-			var p2: Vector2 = p1 - n * len
+			var p2: Vector2 = p1 - n * line_len
 			draw_line(p1, p2, col, w, true)
