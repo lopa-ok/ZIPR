@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://c7hrvrjd6nase"
+path="res://.godot/imported/freezer.obj-9ef8c654d7e715149574bdeba11ac09d.mesh"
+
+[deps]
+
+files=["res://.godot/imported/freezer.obj-9ef8c654d7e715149574bdeba11ac09d.mesh"]
+
+source_file="res://resources/models/market/Models/OBJ format/freezer.obj"
+dest_files=["res://.godot/imported/freezer.obj-9ef8c654d7e715149574bdeba11ac09d.mesh", "res://.godot/imported/freezer.obj-9ef8c654d7e715149574bdeba11ac09d.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

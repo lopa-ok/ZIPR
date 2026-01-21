@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://co38cqb6u6wlu"
+path="res://.godot/imported/shelf-bags.obj-d98b91f35ce0ad71d09668e212a404f6.mesh"
+
+[deps]
+
+files=["res://.godot/imported/shelf-bags.obj-d98b91f35ce0ad71d09668e212a404f6.mesh"]
+
+source_file="res://resources/models/market/Models/OBJ format/shelf-bags.obj"
+dest_files=["res://.godot/imported/shelf-bags.obj-d98b91f35ce0ad71d09668e212a404f6.mesh", "res://.godot/imported/shelf-bags.obj-d98b91f35ce0ad71d09668e212a404f6.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

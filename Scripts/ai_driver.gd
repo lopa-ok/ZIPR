@@ -1,38 +1,47 @@
 extends Node
 
+@export_group("Pathing")
+@export var race_path: Path3D 
+## How strongly the car steers to stay on the exact center line (0.0 = Loose/Cuts corners, 2.0 = Strict/Rail-like)
+@export var path_centering_force: float = 1.5
 @export var cars: Array[VehicleBody3D] = []
 
+@export_subgroup("Legacy Waypoints")
 @export var waypoints: Array[NodePath] = []
-
 @export var use_waypoints: bool = false
-
 @export var waypoint_reach_radius: float = 4.0
 
+@export_group("AI Driving")
 @export var lookahead_min: float = 4.0
-@export var lookahead_max: float = 16.0
+@export var lookahead_max: float = 12.0
 @export var lookahead_speed_ref: float = 40.0
+@export var curvature_lookahead_scale: float = 0.5
 
 @export var target_speed: float = 45.0
 @export var min_target_speed: float = 18.0
-@export var corner_slowdown: float = 28.0
+@export var corner_slowdown: float = 40.0
 
-@export var steer_gain: float = 1.25
-@export var steer_smooth: float = 8.0
-@export var steer_rate_limit: float = 3.5
+@export var steer_gain: float = 1.6
+@export var steer_smooth: float = 12.0
+@export var steer_rate_limit: float = 6.0
 
 @export var throttle_deadzone: float = 0.05
 
 @export var handbrake_for_hairpins: bool = true
-@export var handbrake_angle_deg: float = 55.0
-@export var handbrake_min_speed: float = 18.0
+@export var handbrake_angle_deg: float = 35.0
+@export var handbrake_min_speed: float = 12.0
 
 @export var steer_deadzone_deg: float = 2.0
-@export var max_steer_at_speed: float = 0.85
-@export var wall_avoid_slowdown: float = 12.0
+@export var max_steer_at_speed: float = 1.0
+@export var wall_avoid_slowdown: float = 18.0
 
-@export var avoidance_radius: float = 5.0
-@export var avoidance_strength: float = 12.0
-@export var avoidance_check_interval: float = 0.1
+@export_group("Car Awareness & Avoidance")
+@export var avoidance_enabled: bool = true
+@export var detect_distance: float = 12.0
+@export var detect_width: float = 2.5
+@export var side_avoid_strength: float = 1.5
+@export var blocked_speed_factor: float = 0.4 
+@export var emergency_brake_distance: float = 4.0
 
 @export var straight_lateral_deadzone: float = 0.6
 @export var straight_angle_deg: float = 6.0
@@ -58,13 +67,20 @@ extends Node
 @export var turn_preview_distance: float = 10.0
 @export var turn_preview_weight: float = 0.65
 @export var brake_for_turns: bool = true
-@export var brake_turn_angle_deg: float = 22.0
+@export var brake_turn_angle_deg: float = 15.0
 
 @export_group("Rubber Banding")
 @export var enable_rubber_banding: bool = true
 @export var rubber_band_catchup_speed: float = 12.0
 @export var rubber_band_slowdown_speed: float = 8.0
 @export var rubber_band_max_distance: float = 150.0
+
+@export_group("AI Specific Physics Overrides")
+@export var ai_extra_steering_mult: float = 1.25
+@export var ai_extra_grip_mult: float = 1.1
+
+@export var path3d_path: NodePath = NodePath()
+@export var path3d_point_count: int = 60 # Number of points to sample from Path3D
 
 class CarAIState:
 	var body: VehicleBody3D
@@ -76,8 +92,9 @@ class CarAIState:
 	var stuck_check_timer: float = 0.0
 	var waypoint_index: int = 0
 	var base_ai_max_speed: float = -1.0
-	
-	# Wall collision recovery
+	var base_ai_max_steering: float = -1.0 
+	var overtake_bias: float = 0.0 
+	var time_blocked: float = 0.0
 	var wall_stuck_timer: float = 0.0
 	var is_backing_up: bool = false
 	var backup_timer: float = 0.0
@@ -117,7 +134,27 @@ func _ready() -> void:
 			if target_car and "is_ai_controlled" in target_car:
 				target_car.is_ai_controlled = true
 	
-	_refresh_checkpoints()
+	if path3d_path != NodePath():
+		var path3d = get_node_or_null(path3d_path)
+		if path3d and path3d is Path3D:
+			_checkpoints.clear()
+			var curve = path3d.curve
+			if curve:
+				var total_len = curve.get_baked_length()
+				for i in range(path3d_point_count):
+					var t = float(i) / float(max(path3d_point_count - 1, 1))
+					var dist = t * total_len
+					var pos = curve.interpolate_baked(dist)
+					var checkpoint = Node3D.new()
+					checkpoint.name = "AI_Path3D_Checkpoint_%d" % i
+					checkpoint.global_position = pos
+					checkpoint.visible = false
+					add_child(checkpoint)
+					_checkpoints.append(checkpoint)
+		else:
+			_refresh_checkpoints()
+	else:
+		_refresh_checkpoints()
 
 func register_ai_car(car_body: VehicleBody3D) -> void:
 	if not car_body:
@@ -195,7 +232,11 @@ func _process_car(state: CarAIState, delta: float) -> void:
 		_resolve_car_controller(state)
 		if state.base_ai_max_speed < 0.0 and state.body and "ai_max_speed" in state.body:
 			state.base_ai_max_speed = float(state.body.get("ai_max_speed"))
-
+		
+		if state.base_ai_max_steering < 0.0 and state.body and "max_steering" in state.body:
+			state.base_ai_max_steering = float(state.body.get("max_steering"))
+			state.body.set("max_steering", state.base_ai_max_steering * ai_extra_steering_mult)
+			
 	var car_body: VehicleBody3D = state.body
 	if car_body == null:
 		return
@@ -246,11 +287,47 @@ func _process_car(state: CarAIState, delta: float) -> void:
 				return
 
 	var target_point: Vector3 = Vector3.INF
+	var future_point: Vector3 = Vector3.INF
+	var nearest_curve_point: Vector3 = Vector3.INF # New var for centering
+	var lookahead = lerp(lookahead_min, lookahead_max, clamp(speed_abs / lookahead_speed_ref, 0.0, 1.0))
 
-	if use_waypoints and not waypoints.is_empty():
-		target_point = _get_current_waypoint_target(state)
+	if race_path != null:
+		var car_pos_global = car_body.global_position
+		var car_pos_local = race_path.to_local(car_pos_global)
+		var current_offset = race_path.curve.get_closest_offset(car_pos_local)
+		var total_len = race_path.curve.get_baked_length()
+		
+		# Get the exact point on the line right next to the car for centering
+		var nearest_local = race_path.curve.sample_baked(current_offset, true)
+		nearest_curve_point = race_path.to_global(nearest_local)
+		
+		var p1 = race_path.curve.sample_baked(current_offset + 2.0, true)
+		var p2 = race_path.curve.sample_baked(current_offset + 12.0, true)
+		var v1 = (p1 - race_path.curve.sample_baked(current_offset, true)).normalized()
+		var v2 = (p2 - p1).normalized()
+		var curve_deg = rad_to_deg(v1.angle_to(v2))
+		
+		if curve_deg > 10.0:
+			lookahead = lerp(lookahead, lookahead_min, min(curve_deg / 45.0, 1.0))
+
+		var target_offset = current_offset + lookahead
+		if target_offset > total_len:
+			target_offset = wrapf(target_offset, 0.0, total_len) 
+		
+		var target_local = race_path.curve.sample_baked(target_offset, true)
+		target_point = race_path.to_global(target_local)
+		
+		var future_offset = target_offset + turn_preview_distance
+		if future_offset > total_len:
+			future_offset = wrapf(future_offset, 0.0, total_len)
 			
-	if target_point == Vector3.INF:
+		var future_local = race_path.curve.sample_baked(future_offset, true)
+		future_point = race_path.to_global(future_local)
+
+	elif use_waypoints and not waypoints.is_empty():
+		target_point = _get_current_waypoint_target(state)
+		future_point = _get_waypoint_point(state.waypoint_index + 1)
+	else:
 		if _checkpoints.is_empty():
 			_refresh_checkpoints()
 		
@@ -265,52 +342,88 @@ func _process_car(state: CarAIState, delta: float) -> void:
 				if dic and dic.has("next_index"):
 					next_idx = int(dic["next_index"])
 			
-			var lookahead = lerp(lookahead_min, lookahead_max, clamp(speed_abs / lookahead_speed_ref, 0.0, 1.0))
 			target_point = _compute_lookahead_target(state, next_idx, lookahead)
-		else:
-			if state.stuck_check_timer == 0.0:
-				print("[AI] No checkpoints or waypoints found for ", car_body.name, "! Driving blindly.")
-			var fallback_steer: float = float(sin(float(Time.get_ticks_msec()) * 0.001 + float(car_body.get_instance_id()))) * 0.2
-			_send_ai_inputs(state, true, false, fallback_steer, false)
-			return
+			future_point = _compute_lookahead_target(state, next_idx, lookahead + turn_preview_distance)
+			
+	if target_point == Vector3.INF:
+		if state.stuck_check_timer == 0.0:
+			print("[AI] No path, checkpoints or waypoints found for ", car_body.name, "! Driving blindly.")
+		var fallback_steer: float = float(sin(float(Time.get_ticks_msec()) * 0.001 + float(car_body.get_instance_id()))) * 0.2
+		_send_ai_inputs(state, true, false, fallback_steer, false)
+		return
 
-	if target_point != Vector3.INF:
-		_drive_towards_target(state, delta, target_point)
+	_drive_towards_target(state, delta, target_point, future_point, nearest_curve_point)
 
-func _drive_towards_target(state: CarAIState, delta: float, target_point: Vector3) -> void:
+func _drive_towards_target(state: CarAIState, delta: float, target_point: Vector3, future_point: Vector3 = Vector3.INF, centering_point: Vector3 = Vector3.INF) -> void:
 	var car_body: VehicleBody3D = state.body
 	var forward_dir: Vector3 = -car_body.global_transform.basis.z
 	var speed: float = float(car_body.linear_velocity.dot(forward_dir))
 	var speed_abs: float = abs(speed)
 
+	# 1. Base vector to the Lookahead Point
 	var to_target_world: Vector3 = target_point - car_body.global_position
 	
-	var avoid_vec: Vector3 = Vector3.ZERO
-	var cars_to_check: Array = []
-	
-	if _race_manager != null and "car_progress" in _race_manager:
-		cars_to_check = _race_manager.car_progress.keys()
-	else:
-		for s in _car_states:
-			if s.body:
-				cars_to_check.append(s.body)
-	
-	for other in cars_to_check:
-		if other == car_body or not is_instance_valid(other):
-			continue
-		
-		var other_body = other as Node3D
-		if other_body == null: continue
+	# 2. Add "Path Centering" Force
+	# This pulls the steering vector towards the *nearest* point on the curve,
+	# effectively cancelling out the "corner cutting" caused by looking ahead.
+	if centering_point != Vector3.INF and path_centering_force > 0.0:
+		var to_center: Vector3 = centering_point - car_body.global_position
+		# We project to_center to be perpendicular to the car's forward motion roughly
+		# But simplest way is just adding it to the target vector.
+		# If the car is to the Left of the track, to_center points Right.
+		to_target_world += to_center * path_centering_force
 
-		var diff: Vector3 = car_body.global_position - other_body.global_position
-		var dist: float = diff.length()
-		
-		if dist < avoidance_radius and dist > 0.01:
-			var repulsion: float = (1.0 - (dist / avoidance_radius))
-			avoid_vec += diff.normalized() * repulsion
+	var avoid_offset: Vector3 = Vector3.ZERO
+	var speed_penalty_factor: float = 1.0 
+	var car_is_blocked: bool = false
 	
-	if avoid_vec != Vector3.ZERO:
-		to_target_world += avoid_vec * avoidance_strength
+	if avoidance_enabled:
+		var cars_to_check: Array = []
+		if _race_manager != null and "car_progress" in _race_manager:
+			cars_to_check = _race_manager.car_progress.keys()
+		else:
+			for s in _car_states:
+				if s.body:
+					cars_to_check.append(s.body)
+		
+		for other in cars_to_check:
+			if other == car_body or not is_instance_valid(other):
+				continue
+			
+			var other_body = other as Node3D
+			if other_body == null: continue
+
+			var local_pos = car_body.to_local(other_body.global_position)
+			
+			if local_pos.z > 2.0: continue 
+			if local_pos.z < -detect_distance: continue 
+			
+			var dist_z = abs(local_pos.z)
+			var dist_x = local_pos.x
+			
+			if dist_z < 6.0 and abs(dist_x) < (detect_width * 1.5):
+				var push_dir = -sign(dist_x) 
+				avoid_offset += car_body.global_transform.basis.x * (push_dir * side_avoid_strength)
+
+			if abs(dist_x) < detect_width:
+				car_is_blocked = true
+				
+				if abs(state.overtake_bias) < 0.1:
+					state.overtake_bias = -1.0 if dist_x > 0 else 1.0
+				
+				var overtake_strength = 6.0 
+				avoid_offset += car_body.global_transform.basis.x * (state.overtake_bias * overtake_strength)
+				
+				if dist_z < emergency_brake_distance:
+					speed_penalty_factor = 0.0 
+				elif dist_z < detect_distance:
+					var prox = 1.0 - (dist_z / detect_distance)
+					speed_penalty_factor = lerp(1.0, blocked_speed_factor, prox)
+	
+	if not car_is_blocked:
+		state.overtake_bias = move_toward(state.overtake_bias, 0.0, delta * 0.5)
+	
+	to_target_world += avoid_offset
 
 	var local_target: Vector3 = car_body.global_transform.basis.inverse() * to_target_world
 	local_target.y = 0.0
@@ -332,8 +445,9 @@ func _drive_towards_target(state: CarAIState, delta: float, target_point: Vector
 		desired_yaw = 0.0
 
 	var steer_cmd: float = clamp(desired_yaw * steer_gain, -1.0, 1.0)
+	
 	if not target_in_front:
-		steer_cmd *= 0.35
+		steer_cmd *= 1.0
 
 	var speed_steer_limit: float = lerp(1.0, max_steer_at_speed, clamp(speed_abs / max(target_speed, 0.01), 0.0, 1.0))
 	steer_cmd = clamp(steer_cmd, -speed_steer_limit, speed_steer_limit)
@@ -354,15 +468,22 @@ func _drive_towards_target(state: CarAIState, delta: float, target_point: Vector
 	var max_step: float = steer_rate_limit * delta
 	state.steer_out = move_toward(state.steer_out, state.steer_smoothed, max_step)
 
+	var turn_severity: float = 0.0
 	var target_dir_world: Vector3 = to_target_world
 	target_dir_world.y = 0.0
+	
 	var fwd: Vector3 = forward_dir
 	fwd.y = 0.0
-	var angle_to_target: float = 0.0
 	if target_dir_world.length() > 0.01 and fwd.length() > 0.01:
-		angle_to_target = abs(rad_to_deg(fwd.normalized().angle_to(target_dir_world.normalized())))
+		turn_severity = abs(rad_to_deg(fwd.normalized().angle_to(target_dir_world.normalized())))
 	
-	var turn_severity: float = angle_to_target 
+	if future_point != Vector3.INF:
+		var future_dir: Vector3 = future_point - target_point
+		future_dir.y = 0.0
+		if future_dir.length() > 0.1:
+			var current_target_dir = target_dir_world.normalized()
+			var next_turn_angle = abs(rad_to_deg(current_target_dir.angle_to(future_dir.normalized())))
+			turn_severity = lerp(turn_severity, next_turn_angle, turn_preview_weight)
 
 	var desired_speed: float = target_speed - (turn_severity / 90.0) * corner_slowdown
 	
@@ -378,38 +499,47 @@ func _drive_towards_target(state: CarAIState, delta: float, target_point: Vector
 			
 			if diff > 0.0:
 				var factor: float = clamp(diff / rubber_band_max_distance, 0.0, 1.0)
-				var boost: float = rubber_band_catchup_speed * factor
-				desired_speed += boost
-				
+				desired_speed += rubber_band_catchup_speed * factor
 				if state.base_ai_max_speed > 0.0 and "ai_max_speed" in car_body:
 					car_body.set("ai_max_speed", max(state.base_ai_max_speed, desired_speed + 5.0))
 			else:
 				var factor: float = clamp(abs(diff) / rubber_band_max_distance, 0.0, 1.0)
 				desired_speed -= rubber_band_slowdown_speed * factor
-				
 				if state.base_ai_max_speed > 0.0 and "ai_max_speed" in car_body:
 					car_body.set("ai_max_speed", state.base_ai_max_speed)
 		elif state.base_ai_max_speed > 0.0 and "ai_max_speed" in car_body:
 			car_body.set("ai_max_speed", state.base_ai_max_speed)
 
+	desired_speed *= speed_penalty_factor
+	
+	var zone_speed_limit_override: float = -1.0 
+
 	desired_speed = clamp(desired_speed, min_target_speed, max(target_speed + rubber_band_catchup_speed, 100.0))
+
+	if zone_speed_limit_override > 0.0:
+		if desired_speed > zone_speed_limit_override:
+			desired_speed = zone_speed_limit_override
 
 	var accel: bool = false
 	var brake: bool = false
 	var handbrake: bool = false
-
+	
 	var speed_error: float = desired_speed - speed_abs
-	if speed_error > max(throttle_deadzone * desired_speed, 0.5):
-		accel = true
-	elif speed_error < -1.0:
-		brake = true
-
-	if brake_for_turns and turn_severity > brake_turn_angle_deg and speed_abs > min_target_speed + 2.0:
+	
+	if speed_penalty_factor < 0.1:
 		brake = true
 		accel = false
+	else:
+		if speed_error > max(throttle_deadzone * desired_speed, 0.5):
+			accel = true
+		elif speed_error < -1.0:
+			brake = true
 
 	if handbrake_for_hairpins and speed_abs > handbrake_min_speed and turn_severity > handbrake_angle_deg:
-		handbrake = true
+		var lateral_vel = state.body.linear_velocity.dot(state.body.global_transform.basis.x)
+		if abs(lateral_vel) < 5.0:
+			handbrake = true
+			accel = false
 
 	if speed < -1.5:
 		accel = true
@@ -422,13 +552,7 @@ func _send_ai_inputs(state: CarAIState, accel: bool, brake: bool, steer: float, 
 	if state.controller == null:
 		_resolve_car_controller(state)
 	if state.controller == null:
-		if Engine.get_process_frames() % 60 == 0:
-			var n = "unknown"
-			if state.body:
-				n = state.body.name
-			print("[AI-Error] No controller found for ", n)
 		return
-		
 	state.controller.call("set_ai_inputs", accel, brake, steer, handbrake)
 
 func _compute_lookahead_target(state: CarAIState, next_idx: int, lookahead: float) -> Vector3:
@@ -468,7 +592,15 @@ func _update_unstuck(state: CarAIState, delta: float, speed_abs: float) -> void:
 
 	if state.stuck_timer >= stuck_time_to_respawn:
 		state.stuck_timer = 0.0
-		if _race_manager != null and _race_manager.has_method("get_last_checkpoint_for_car"):
+		if race_path != null:
+			var offset = race_path.curve.get_closest_offset(race_path.to_local(state.body.global_position))
+			var pos_local = race_path.curve.sample_baked(offset, true)
+			state.body.global_position = race_path.to_global(pos_local) + Vector3(0, 1, 0)
+			var next_pos_local = race_path.curve.sample_baked(offset + 2.0, true)
+			state.body.look_at(race_path.to_global(next_pos_local), Vector3.UP)
+			state.body.linear_velocity = Vector3.ZERO
+			state.body.angular_velocity = Vector3.ZERO
+		elif _race_manager != null and _race_manager.has_method("get_last_checkpoint_for_car"):
 			if state.body:
 				var cp: Node = _race_manager.get_last_checkpoint_for_car(state.body)
 				if cp != null and cp is Node3D:

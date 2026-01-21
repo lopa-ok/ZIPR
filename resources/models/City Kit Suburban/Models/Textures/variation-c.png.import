@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://d27xkyxi6fklp"
 path.s3tc="res://.godot/imported/variation-c.png-f9edd0f3e59481bb98934202c5bb4c0b.s3tc.ctex"
+path.etc2="res://.godot/imported/variation-c.png-f9edd0f3e59481bb98934202c5bb4c0b.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://resources/models/City Kit Suburban/Models/Textures/variation-c.png"
-dest_files=["res://.godot/imported/variation-c.png-f9edd0f3e59481bb98934202c5bb4c0b.s3tc.ctex"]
+dest_files=["res://.godot/imported/variation-c.png-f9edd0f3e59481bb98934202c5bb4c0b.s3tc.ctex", "res://.godot/imported/variation-c.png-f9edd0f3e59481bb98934202c5bb4c0b.etc2.ctex"]
 
 [params]
 
