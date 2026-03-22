@@ -2,7 +2,6 @@ extends Node
 
 @export_group("Pathing")
 @export var race_path: Path3D 
-## How strongly the car steers to stay on the exact center line (0.0 = Loose/Cuts corners, 2.0 = Strict/Rail-like)
 @export var path_centering_force: float = 1.5
 @export var cars: Array[VehicleBody3D] = []
 
@@ -80,7 +79,7 @@ extends Node
 @export var ai_extra_grip_mult: float = 1.1
 
 @export var path3d_path: NodePath = NodePath()
-@export var path3d_point_count: int = 60 # Number of points to sample from Path3D
+@export var path3d_point_count: int = 60
 
 class CarAIState:
 	var body: VehicleBody3D
@@ -288,7 +287,7 @@ func _process_car(state: CarAIState, delta: float) -> void:
 
 	var target_point: Vector3 = Vector3.INF
 	var future_point: Vector3 = Vector3.INF
-	var nearest_curve_point: Vector3 = Vector3.INF # New var for centering
+	var nearest_curve_point: Vector3 = Vector3.INF
 	var lookahead = lerp(lookahead_min, lookahead_max, clamp(speed_abs / lookahead_speed_ref, 0.0, 1.0))
 
 	if race_path != null:
@@ -297,7 +296,6 @@ func _process_car(state: CarAIState, delta: float) -> void:
 		var current_offset = race_path.curve.get_closest_offset(car_pos_local)
 		var total_len = race_path.curve.get_baked_length()
 		
-		# Get the exact point on the line right next to the car for centering
 		var nearest_local = race_path.curve.sample_baked(current_offset, true)
 		nearest_curve_point = race_path.to_global(nearest_local)
 		
@@ -360,17 +358,10 @@ func _drive_towards_target(state: CarAIState, delta: float, target_point: Vector
 	var speed: float = float(car_body.linear_velocity.dot(forward_dir))
 	var speed_abs: float = abs(speed)
 
-	# 1. Base vector to the Lookahead Point
 	var to_target_world: Vector3 = target_point - car_body.global_position
 	
-	# 2. Add "Path Centering" Force
-	# This pulls the steering vector towards the *nearest* point on the curve,
-	# effectively cancelling out the "corner cutting" caused by looking ahead.
 	if centering_point != Vector3.INF and path_centering_force > 0.0:
 		var to_center: Vector3 = centering_point - car_body.global_position
-		# We project to_center to be perpendicular to the car's forward motion roughly
-		# But simplest way is just adding it to the target vector.
-		# If the car is to the Left of the track, to_center points Right.
 		to_target_world += to_center * path_centering_force
 
 	var avoid_offset: Vector3 = Vector3.ZERO

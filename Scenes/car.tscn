@@ -1,8 +1,9 @@
-[gd_scene load_steps=21 format=4 uid="uid://7iwmpu24p8jt"]
+[gd_scene load_steps=22 format=4 uid="uid://7iwmpu24p8jt"]
 
 [ext_resource type="Texture2D" uid="uid://cjcvseqbkkff6" path="res://resources/models/Models/GLB format/Textures/colormap.png" id="1_5orbf"]
 [ext_resource type="Script" uid="uid://bhoyfsmf8qo8c" path="res://Scripts/car.gd" id="1_abc123"]
 [ext_resource type="Script" uid="uid://csd306qvnpncq" path="res://Scripts/ui.gd" id="3_jbim0"]
+[ext_resource type="Texture2D" uid="uid://dhubvoapyuomb" path="res://resources/Icons/fxpage2.bmp" id="4_qeqd0"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_jbim0"]
 
@@ -312,6 +313,7 @@ current = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 script = ExtResource("3_jbim0")
+turn_signal_sheet = ExtResource("4_qeqd0")
 
 [node name="RayCast3D" type="RayCast3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6221322, -0.06445694)

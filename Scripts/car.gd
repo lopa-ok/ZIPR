@@ -71,7 +71,12 @@ var race_manager: Node = null
 var engine_sound_player: AudioStreamPlayer3D
 var engine_stream: AudioStream = preload("res://resources/models/Music/EngineSound.wav")
 
+var oil_slip_timer: float = 0.0
+var oil_slip_duration: float = 2.5
+var oil_slip_friction: float = 0.6
+
 func _ready() -> void:
+	print("Car ready:", name, "is_ai_controlled:", is_ai_controlled)
 	sleeping = false
 	can_sleep = false
 	randomize()
@@ -103,7 +108,16 @@ func _initialize_car() -> void:
 	race_manager = get_tree().get_first_node_in_group("race_manager")
 	if race_manager and race_manager.has_method("register_car"):
 		race_manager.register_car(self)
-	
+
+	if not is_ai_controlled:
+		if Global.current_game_mode == Global.GameMode.SUMO:
+			var sumo_ui = load("res://Scripts/sumo_ui.gd")
+			if sumo_ui:
+				var ui_layer := CanvasLayer.new()
+				ui_layer.set_script(sumo_ui)
+				ui_layer.name = "SumoUI"
+				add_child(ui_layer)
+		
 	_apply_car_stats()
 
 func _apply_car_stats() -> void:
@@ -152,6 +166,16 @@ func _physics_process(delta: float) -> void:
 		brake_input = Input.is_action_pressed("Brake")
 		steer_input = Input.get_axis("SteerRight", "SteerLeft")
 		handbrake_input = Input.is_action_pressed("Handbrake")
+
+	if not is_ai_controlled:
+		var ui_node = get_node_or_null("UI")
+		if ui_node:
+			if Input.is_action_pressed("SteerLeft"):
+				ui_node.show_turn_signal("turn", true)
+			elif Input.is_action_pressed("SteerRight"):
+				ui_node.show_turn_signal("turn", false)
+			else:
+				ui_node.hide_turn_signal()
 
 	var race_stopped = false
 	if race_manager and "race_started" in race_manager and not race_manager.race_started:
@@ -204,6 +228,11 @@ func _physics_process(delta: float) -> void:
 		boost_timer -= delta
 		engine *= boost_multiplier
 
+	if oil_slip_timer > 0.0:
+		oil_slip_timer -= delta
+		if oil_slip_timer < 0.0:
+			oil_slip_timer = 0.0
+
 	wheel_rl.engine_force = engine
 	wheel_rr.engine_force = engine
 	wheel_fl.engine_force = 0.0
@@ -236,7 +265,10 @@ func _handle_drift(delta: float, steer_input: float, handbrake_input: bool, spee
 	var target_rear_friction: float = normal_friction
 	var target_front_friction: float = normal_front_friction
 
-	if handbrake_input:
+	if oil_slip_timer > 0.0:
+		target_rear_friction = oil_slip_friction
+		target_front_friction = oil_slip_friction
+	elif handbrake_input:
 		target_rear_friction = drift_friction
 		target_front_friction = drift_front_friction
 		if abs(steer_input) > 0.1 and speed > 5.0:
@@ -353,7 +385,6 @@ func _teleport_to_last_checkpoint() -> void:
 		var cp: Node3D = race_manager.get_last_checkpoint_for_car(self)
 		if cp:
 			var t: Transform3D = cp.global_transform
-			# Set both position and orientation to match the checkpoint, but rotate 180 degrees around Y
 			var rotated_basis = t.basis.rotated(Vector3.UP, PI)
 			global_transform = Transform3D(rotated_basis, t.origin)
 			linear_velocity = Vector3.ZERO
@@ -394,10 +425,9 @@ func _drop_oil() -> void:
 		oil.global_rotation = global_transform.basis.get_euler()
 
 func apply_oil_slip(oil: Node) -> void:
-	var right_dir: Vector3 = global_transform.basis.x
-	var random_dir: Vector3 = right_dir.rotated(Vector3.UP, randf_range(-0.5, 0.5))
-	var force = oil.slip_force if "slip_force" in oil else 10.0
-	linear_velocity += random_dir * force
+	oil_slip_timer = oil_slip_duration
+	rear_friction = normal_friction
+	front_friction = normal_front_friction
 
 func _shoot_water_balloon() -> void:
 	var scene = load("res://Scenes/WaterBalloon.tscn")

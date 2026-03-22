@@ -1,4 +1,4 @@
-[gd_scene load_steps=149 format=4 uid="uid://bt3aqtfkkp3tx"]
+[gd_scene load_steps=150 format=4 uid="uid://bt3aqtfkkp3tx"]
 
 [ext_resource type="Shader" uid="uid://c7buvcnran6a3" path="res://resources/sky_clouds.gdshader" id="1_cxakn"]
 [ext_resource type="MeshLibrary" uid="uid://duy1m3rhlhpi8" path="res://resources/Roads3.tres" id="2_tyf1b"]
@@ -16,6 +16,7 @@
 [ext_resource type="PackedScene" uid="uid://cery3in0y2nbp" path="res://resources/models/City Kit Commercial 2.1 (1)/Models/GLB format/building-g.glb" id="17_2be3b"]
 [ext_resource type="PackedScene" uid="uid://c4cfy1havoscl" path="res://resources/models/City Kit Commercial 2.1 (1)/Models/GLB format/building-skyscraper-a.glb" id="18_ehnmg"]
 [ext_resource type="Script" uid="uid://dtmvrkh2a30ae" path="res://Scripts/main_menu.gd" id="18_x34pm"]
+[ext_resource type="Script" uid="uid://dnrdwmc4eufus" path="res://Scripts/rainbow_label3d.gd" id="19_gns88"]
 [ext_resource type="PackedScene" uid="uid://b0t34fd45541n" path="res://resources/models/City Kit Commercial 2.1 (1)/Models/GLB format/building-skyscraper-e.glb" id="19_u2jye"]
 [ext_resource type="Script" uid="uid://57bta4lhb2mk" path="res://Scripts/ai_driver.gd" id="21_hvsy0"]
 [ext_resource type="PackedScene" uid="uid://m6syjqab2tla" path="res://resources/models/City Kit Roads (1)/Models/GLB format/sign-highway-wide.glb" id="22_tyf1b"]
@@ -1792,10 +1793,10 @@ tracks/0/path = NodePath("Camera3D:rotation")
 tracks/0/interp = 1
 tracks/0/loop_wrap = true
 tracks/0/keys = {
-"times": PackedFloat32Array(0, 0.87833333, 0.89, 1.4),
+"times": PackedFloat32Array(0, 0.555, 0.56666666, 1.5),
 "transitions": PackedFloat32Array(1, 1, 1, 1),
 "update": 0,
-"values": [Vector3(0, 0.7194422, 0), Vector3(0, -0.009093172, 0), Vector3(0, -0.038032547, 0), Vector3(0, -1.3030977, 0)]
+"values": [Vector3(0, 0.7194422, 0), Vector3(0, -0.009093172, 0), Vector3(0, -0.038032547, 0), Vector3(-1.5707964, -8.351871e-23, 0)]
 }
 tracks/1/type = "value"
 tracks/1/imported = false
@@ -1804,10 +1805,10 @@ tracks/1/path = NodePath("Camera3D:position")
 tracks/1/interp = 1
 tracks/1/loop_wrap = true
 tracks/1/keys = {
-"times": PackedFloat32Array(0, 0.87833333, 0.89, 1.4),
-"transitions": PackedFloat32Array(1, 1, 1, 1),
+"times": PackedFloat32Array(0, 0.555, 0.56666666, 1.0766666, 1.5),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
 "update": 0,
-"values": [Vector3(-88.27258, 3.684185, -93.184586), Vector3(-87.14908, 3.684185, -216.73604), Vector3(-86.07704, 3.889371, -234.25949), Vector3(-68.49435, 12.858934, -230.77672)]
+"values": [Vector3(-88.27258, 3.684185, -93.184586), Vector3(-87.14908, 3.684185, -216.73604), Vector3(-86.07704, 3.889371, -234.25949), Vector3(-68.49435, 12.858934, -230.77672), Vector3(-55.330315, 32.963867, -241.4938)]
 }
 
 [sub_resource type="Animation" id="Animation_gns88"]
@@ -2401,13 +2402,13 @@ transform = Transform3D(0.9999998, 0, 0, 0, 1, 0, 0, 0, 0.9999998, 4.227468, -0.
 transform = Transform3D(0.93491834, 0, 0.35486212, 0, 1, 0, -0.35486212, 0, 0.93491834, 7.822207, 0, -0.46637866)
 
 [node name="sign-highway-wide2" parent="Buildings" instance=ExtResource("22_tyf1b")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.057460174, 0, -0.10141806)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.05071289, 0, -0.10141806)
 
 [node name="sign-highway-wide3" parent="Buildings" instance=ExtResource("22_tyf1b")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.057460174, 0, -5.2990513)
 
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(0.9999999, 0, 0, 0, 1, 0, 0, 0, 0.9999999, 2.0889854, 14.39835, 35.09256)
+transform = Transform3D(1, 0, 0, 0, 1.0000001, 0, 0, 0, 1, 2.0889854, 14.39835, 35.09256)
 
 [node name="MenuItems" type="Node3D" parent="." node_paths=PackedStringArray("anim_player", "start_label", "options_label", "quit_label", "level_1_label", "level_2_label", "level_3_label", "car_1_model", "car_2_model", "car_3_model", "car_4_model", "car_5_model", "car_6_model", "car_display_marker")]
 script = ExtResource("18_x34pm")
@@ -2415,9 +2416,9 @@ anim_player = NodePath("../AnimationPlayer")
 start_label = NodePath("StartMenu/StartLabel")
 options_label = NodePath("StartMenu/OptionsLabel")
 quit_label = NodePath("StartMenu/QuitLabel")
-level_1_label = NodePath("Node3D/StartLabel2")
-level_2_label = NodePath("Node3D/OptionsLabel2")
-level_3_label = NodePath("Node3D/QuitLabel2")
+level_1_label = NodePath("Node3D/Supermarket")
+level_2_label = NodePath("Node3D/Toys in the hood")
+level_3_label = NodePath("Node3D/Future level")
 car_1_model = NodePath("taxi")
 car_2_model = NodePath("sedan-sports")
 car_3_model = NodePath("firetruck")
@@ -2430,6 +2431,8 @@ car_to_level_animation_name = "Level"
 options_animation_name = "Option"
 level_1_scene = "res://Scenes/World_Supermarket.tscn"
 selected_color = Color(1, 1, 1, 1)
+menu_move_sfx = "res://resources/Music/menuleftright.wav"
+menu_anim_sfx = "res://resources/Music/menunext.wav"
 
 [node name="StartMenu" type="Node3D" parent="MenuItems"]
 
@@ -2462,26 +2465,27 @@ transform = Transform3D(3.565148, 0.32577145, 0, -0.32577145, 3.565148, 0, 0, 0,
 
 [node name="Node3D" type="Node3D" parent="MenuItems"]
 
-[node name="StartLabel2" type="Label3D" parent="MenuItems/Node3D"]
-transform = Transform3D(0.625515, 0, -0.78021216, 0, 1, 0, 0.78021216, 0, 0.625515, -45.581444, 16.435009, -265.5571)
+[node name="Supermarket" type="Label3D" parent="MenuItems/Node3D"]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -73.35924, 1.8520001, -248.9854)
 pixel_size = 0.0011
 text = "Supermarket"
 font_size = 4096
 horizontal_alignment = 0
 
-[node name="OptionsLabel2" type="Label3D" parent="MenuItems/Node3D"]
-transform = Transform3D(0.625515, 0, -0.78021216, 0, 1, 0, 0.78021216, 0, 0.625515, -45.573586, 11.501738, -265.56018)
+[node name="Toys in the hood" type="Label3D" parent="MenuItems/Node3D"]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -73.35123, 1.8522615, -243.27065)
 pixel_size = 0.0011
 text = "Toys in the hood"
 font_size = 4096
 horizontal_alignment = 0
 
-[node name="QuitLabel2" type="Label3D" parent="MenuItems/Node3D"]
-transform = Transform3D(0.625515, 0, -0.78021216, 0, 1, 0, 0.78021216, 0, 0.625515, -45.573586, 6.689232, -265.56018)
+[node name="Future level" type="Label3D" parent="MenuItems/Node3D"]
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, -73.351234, 1.8520006, -237.57684)
 pixel_size = 0.0011
-text = "future level 2"
+text = "Super Duper Sumo"
 font_size = 4096
 horizontal_alignment = 0
+script = ExtResource("19_gns88")
 
 [node name="Boxes" type="Node3D" parent="MenuItems"]
 transform = Transform3D(12.187769, 0, -21.821917, -2.445625e-06, -12.87, -2.4794595e-06, -16.196642, 1.943316e-06, -16.42072, -107.92966, 2.9965327, -105.84673)

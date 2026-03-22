@@ -1,6 +1,8 @@
 extends CanvasLayer
 
 @export var car_path: NodePath
+@export var turn_signal_sheet: Texture
+@export var turn_signal_textures: Dictionary = {}
 
 var car: VehicleBody3D
 var race_manager: Node
@@ -40,6 +42,14 @@ var powerup_icon_map: Dictionary[String, String] = {
 	"water_balloon": "res://images/icon.jpg",
 }
 
+var turn_signal_regions := {
+	"turn": Rect2(0, 0, 64, 64),
+	"u_turn": Rect2(64, 0, 64, 64),
+	"snake": Rect2(128, 0, 64, 64),
+	"both": Rect2(192, 0, 64, 64),
+	"go": Rect2(256, 0, 64, 64),
+}
+
 var _roulette_active: bool = false
 var _roulette_timer: float = 0.0
 var _roulette_duration: float = 1.2
@@ -48,13 +58,29 @@ var _roulette_index: int = 0
 var _roulette_final: String = ""
 
 func _enter_tree():
+	if Global.current_game_mode == Global.GameMode.SUMO:
+		visible = false
+		queue_free()
+		return
+	if get_tree().get_first_node_in_group("sumo_manager") != null:
+		visible = false
+		queue_free()
+		return
 	var existing = get_tree().get_nodes_in_group("race_hud")
 	if existing.size() > 0:
+		visible = false
 		queue_free()
 		return
 	add_to_group("race_hud")
 
 func _ready():
+	if Global.current_game_mode == Global.GameMode.SUMO:
+		visible = false
+		return
+	if get_tree().get_first_node_in_group("sumo_manager") != null:
+		visible = false
+		return
+
 	car = _resolve_car()
 
 	if car != null:
@@ -173,7 +199,6 @@ func _update_countdown_ui():
 
 	if _cached_mgr_has_countdown:
 		var txt: String = race_manager.call("get_countdown_text")
-		# Only show integer part if it's a number (e.g. 1.0 -> 1)
 		if txt.is_valid_float():
 			txt = str(int(txt.to_float()))
 		countdown_label.text = txt
@@ -253,7 +278,6 @@ func _create_gauge():
 	speed_gauge.offset_bottom = -hud_margin
 	speed_gauge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	# Add speedometer label in the center of the gauge
 	speedometer_label = Label.new()
 	speed_gauge.add_child(speedometer_label)
 	speedometer_label.text = "00"
@@ -300,7 +324,6 @@ func _create_powerup_panel():
 	powerup_panel = PanelContainer.new()
 	add_child(powerup_panel)
 	powerup_panel.visible = false
-	# Top right corner
 	powerup_panel.anchor_left = 1.0
 	powerup_panel.anchor_right = 1.0
 	powerup_panel.anchor_top = 0.0
@@ -344,7 +367,6 @@ func _create_stats_panel():
 	panel.offset_bottom = 150
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	# Consistent style for all left-side stats
 	var stats_font_size = 24
 	var stats_color = Color(1, 1, 1)
 	var stats_settings = _make_label_settings(stats_font_size, stats_color)
@@ -381,7 +403,7 @@ func _create_countdown():
 	countdown_label.label_settings = _make_label_settings(100, Color(1, 0.8, 0))
 	countdown_label.label_settings.outline_size = 16
 
-func show_turn_signal(direction: String):
+func show_turn_signal(signal_type: String, is_left: bool = false):
 	if not turn_signal_icon:
 		turn_signal_icon = TextureRect.new()
 		add_child(turn_signal_icon)
@@ -398,8 +420,49 @@ func show_turn_signal(direction: String):
 		turn_signal_icon.z_index = 100
 		turn_signal_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
-	var icon_path = "res://images/turn_left.png" if direction == "left" else "res://images/turn_right.png"
-	turn_signal_icon.texture = load(icon_path)
+	var tex = turn_signal_textures.get(signal_type, null)
+	if tex == null:
+		tex = turn_signal_sheet
+	turn_signal_icon.texture = tex
+
+	if tex is AtlasTexture:
+		turn_signal_icon.region_enabled = true
+		turn_signal_icon.region_rect = turn_signal_regions.get(signal_type, Rect2(0,0,64,64))
+	else:
+		turn_signal_icon.region_enabled = false
+
+	turn_signal_icon.flip_h = is_left
+	turn_signal_icon.visible = true
+
+func show_turn_signal_with_texture(signal_type: String, is_left: bool, custom_texture: Texture):
+	if not turn_signal_icon:
+		turn_signal_icon = TextureRect.new()
+		add_child(turn_signal_icon)
+		turn_signal_icon.anchor_left = 0.5
+		turn_signal_icon.anchor_right = 0.5
+		turn_signal_icon.anchor_top = 0.5
+		turn_signal_icon.anchor_bottom = 0.5
+		turn_signal_icon.offset_left = -64
+		turn_signal_icon.offset_top = -64
+		turn_signal_icon.offset_right = 64
+		turn_signal_icon.offset_bottom = 64
+		turn_signal_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		turn_signal_icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		turn_signal_icon.z_index = 100
+		turn_signal_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var tex = custom_texture if custom_texture else turn_signal_textures.get(signal_type, null)
+	if tex == null:
+		tex = turn_signal_sheet
+	turn_signal_icon.texture = tex
+
+	if tex is AtlasTexture:
+		turn_signal_icon.region_enabled = true
+		turn_signal_icon.region_rect = turn_signal_regions.get(signal_type, Rect2(0,0,64,64))
+	else:
+		turn_signal_icon.region_enabled = false
+
+	turn_signal_icon.flip_h = is_left
 	turn_signal_icon.visible = true
 
 func hide_turn_signal():

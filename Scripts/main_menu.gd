@@ -47,8 +47,8 @@ enum MenuState { MAIN, LEVEL_SELECT, CAR_SELECT, OPTIONS }
 @export var car_to_level_animation_name: String = "car_to_level"
 @export var options_animation_name: String = "options_menu"
 @export var level_1_scene: String = "res://Scenes/World.tscn"
-@export var level_2_scene: String = "res://Scenes/World.tscn"
-@export var level_3_scene: String = "res://Scenes/World.tscn"
+@export var level_2_scene: String = "res://Scenes/World_Supermarket.tscn"
+@export var level_3_scene: String = "res://Scenes/World_Fight.tscn"
 
 @export_category("Visuals")
 @export var selected_color: Color = Color.YELLOW
@@ -56,6 +56,9 @@ enum MenuState { MAIN, LEVEL_SELECT, CAR_SELECT, OPTIONS }
 @export var normal_scale: Vector3 = Vector3(1.0, 1.0, 1.0)
 @export var hover_scale: Vector3 = Vector3(1.1, 1.1, 1.1)
 @export var arrow_text: String = "> "
+
+@export var menu_move_sfx: String = "res://resources/models/Music/Step.mp3"
+@export var menu_anim_sfx: String = "res://resources/models/Music/Step2.mp3"
 
 var _state: MenuState = MenuState.MAIN
 var _labels: Array[Label3D] = []
@@ -137,6 +140,9 @@ func _navigate(direction: int) -> void:
 		
 	_update_visuals()
 	
+	if SoundManager and menu_move_sfx:
+		SoundManager.play_sfx(menu_move_sfx, 0.0, 1.0)
+	
 	if _state == MenuState.CAR_SELECT:
 		var models = [car_1_model, car_2_model, car_3_model, car_4_model, car_5_model, car_6_model]
 		var anims = [car_1_anim_name, car_2_anim_name, car_3_anim_name, car_4_anim_name, car_5_anim_name, car_6_anim_name]
@@ -200,6 +206,9 @@ func _animate_car_entry(model: Node3D, anim_name: String) -> void:
 		tween.tween_callback(func(): _play_node_anim(model, anim_name))
 	else:
 		_play_node_anim(model, anim_name)
+	
+	if SoundManager and menu_anim_sfx:
+		SoundManager.play_sfx(menu_anim_sfx, 0.0, 1.0)
 
 func _confirm_selection() -> void:
 	if _state == MenuState.MAIN:
@@ -302,13 +311,11 @@ func _on_animation_finished(anim_name: String) -> void:
 		elif _state == MenuState.MAIN:
 			_set_labels_visible([car_1_label, car_2_label, car_3_label, car_4_label, car_5_label, car_6_label], false)
 			_set_labels_visible([level_1_label, level_2_label, level_3_label], false)
-			
 	elif anim_name == car_to_level_animation_name:
 		if _state == MenuState.LEVEL_SELECT:
 			_set_labels_visible([car_1_label, car_2_label, car_3_label, car_4_label, car_5_label, car_6_label], false)
 		elif _state == MenuState.CAR_SELECT:
 			_set_labels_visible([level_1_label, level_2_label, level_3_label], false)
-			
 	elif anim_name == options_animation_name:
 		if _state == MenuState.OPTIONS:
 			_set_labels_visible([start_label, options_label, quit_label], false)
@@ -348,6 +355,10 @@ func _set_labels_visible(labels: Array[Label3D], is_visible: bool) -> void:
 
 func _load_level(scene_path: String) -> void:
 	if scene_path != "":
+		if scene_path == level_3_scene and scene_path.contains("Fight"):
+			Global.current_game_mode = Global.GameMode.SUMO
+		else:
+			Global.current_game_mode = Global.GameMode.RACE
 		get_tree().change_scene_to_file(scene_path)
 
 func _toggle_fullscreen() -> void:

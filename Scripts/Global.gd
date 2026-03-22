@@ -1,5 +1,8 @@
 extends Node
 
+enum GameMode { RACE, SUMO }
+
+var current_game_mode: GameMode = GameMode.RACE
 var selected_car_id: int = 0
 
 var car_stats: Dictionary = {

@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 Global="*res://Scripts/Global.gd"
 SoundManager="*res://Scripts/sound_manager.gd"
+PauseMenu="*res://Scripts/pause_menu.gd"
 
 [display]
 

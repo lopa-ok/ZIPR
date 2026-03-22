@@ -1,0 +1,110 @@
+[gd_scene load_steps=12 format=3 uid="uid://0t45e3f7cgdb"]
+
+[ext_resource type="Script" uid="uid://dcq5kcgjwfp83" path="res://Scripts/sumo_manager.gd" id="1_sumo_mgr"]
+[ext_resource type="Script" uid="uid://bdsu2xpe40bf4" path="res://Scripts/sumo_ai_driver.gd" id="2_sumo_ai"]
+[ext_resource type="PackedScene" uid="uid://c8q1n1n1n1n1" path="res://Scenes/SpawnPoint.tscn" id="3_spawn"]
+[ext_resource type="Shader" uid="uid://c7buvcnran6a3" path="res://resources/sky_clouds.gdshader" id="4_sky_shader"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
+shader = ExtResource("4_sky_shader")
+shader_parameter/add_clouds = true
+shader_parameter/clouds_below = false
+shader_parameter/cloud_scale = 0.25
+shader_parameter/speed = 0.01
+shader_parameter/cloud_dark = 0.1
+shader_parameter/cloud_light = 0.9
+shader_parameter/cloud_cover = 0.25
+shader_parameter/cloud_alpha = 4.0
+shader_parameter/sky_tint = 0.4
+shader_parameter/height_offset = 0.25
+shader_parameter/sky_contribution = 1.0
+
+[sub_resource type="Sky" id="Sky_arena"]
+sky_material = SubResource("ShaderMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_arena"]
+background_mode = 2
+sky = SubResource("Sky_arena")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_arena"]
+top_radius = 38.0
+bottom_radius = 40.0
+
+[sub_resource type="StandardMaterial3D" id="Material_arena_floor"]
+albedo_color = Color(0.25, 0.25, 0.28, 1)
+roughness = 0.85
+
+[sub_resource type="CylinderShape3D" id="CylinderShape_arena"]
+radius = 40.0
+
+[sub_resource type="StandardMaterial3D" id="Material_arena_edge"]
+albedo_color = Color(0.8, 0.2, 0.15, 1)
+roughness = 0.7
+emission_enabled = true
+emission = Color(0.8, 0.2, 0.15, 1)
+emission_energy_multiplier = 0.3
+
+[node name="World_Fight" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_arena")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.5934188, 0.5343902, -0.60189813, 0, 0.7477981, 0.66392624, 0.8048939, -0.39398628, 0.4437574, 0, 20, 0)
+light_color = Color(0.95, 0.85, 0.7, 1)
+light_energy = 0.8
+shadow_enabled = true
+
+[node name="DirectionalLight3D2" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.5934188, 0.5343902, 0.60189813, 0, 0.7477981, -0.66392624, -0.8048939, -0.39398628, -0.4437574, 0, 20, 0)
+light_color = Color(0.5, 0.6, 0.85, 1)
+light_energy = 0.3
+
+[node name="ArenaFloor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="ArenaFloor"]
+mesh = SubResource("CylinderMesh_arena")
+surface_material_override/0 = SubResource("Material_arena_floor")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ArenaFloor"]
+shape = SubResource("CylinderShape_arena")
+
+[node name="ArenaEdgeRing" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.0726311, 0)
+mesh = SubResource("CylinderMesh_arena")
+surface_material_override/0 = SubResource("Material_arena_edge")
+
+[node name="ArenaCenter" type="Marker3D" parent="." groups=["arena_center"]]
+
+[node name="SumoManager" type="Node" parent="."]
+script = ExtResource("1_sumo_mgr")
+
+[node name="SumoAIDriver" type="Node" parent="."]
+script = ExtResource("2_sumo_ai")
+
+[node name="SpawnPoint1" parent="." instance=ExtResource("3_spawn")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0.3, 15)
+is_player_start = true
+
+[node name="SpawnPoint2" parent="." instance=ExtResource("3_spawn")]
+transform = Transform3D(1, 0, 1.7484555e-07, 0, 1, 0, -1.7484555e-07, 0, 1, 0, 0.3, -15)
+spawn_index = 1
+
+[node name="SpawnPoint3" parent="." instance=ExtResource("3_spawn")]
+transform = Transform3D(1.1924881e-08, 0, -1, 0, 1, 0, 1, 0, 1.1924881e-08, 15, 0.3, 0)
+spawn_index = 2
+
+[node name="SpawnPoint4" parent="." instance=ExtResource("3_spawn")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -15, 0.3, 0)
+spawn_index = 3
+
+[node name="SpawnPoint5" parent="." instance=ExtResource("3_spawn")]
+transform = Transform3D(-0.707107, 0, -0.7071069, 0, 1, 0, 0.7071069, 0, -0.707107, 10.6, 0.3, 10.6)
+spawn_index = 4
+
+[node name="SpawnPoint6" parent="." instance=ExtResource("3_spawn")]
+transform = Transform3D(0.70710695, 0, 0.70710695, 0, 1, 0, -0.70710695, 0, 0.70710695, -10.6, 0.3, -10.6)
+spawn_index = 5
